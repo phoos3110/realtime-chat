@@ -15,7 +15,7 @@ export default function JoinedRooms({ userId, onOpen }) {
       try {
         // RLS chỉ trả về phòng có tài khoản hiện tại là thành viên.
         const { data, error } = await supabase.from('chat_rooms')
-          .select('id, owner_id, created_at')
+          .select('id, name, owner_id, created_at')
           .order('created_at', { ascending: false })
         if (error) throw error
         if (active) setRooms(data)
@@ -31,7 +31,7 @@ export default function JoinedRooms({ userId, onOpen }) {
 
   async function deleteRoom(item) {
     if (deletingId || item.owner_id !== userId) return
-    if (!window.confirm(`Xóa phòng ${item.id.slice(0, 8)}? Toàn bộ tin nhắn và thành viên sẽ bị xóa vĩnh viễn.`)) return
+    if (!window.confirm(`Xóa phòng "${item.name || item.id.slice(0, 8)}"? Toàn bộ tin nhắn và thành viên sẽ bị xóa vĩnh viễn.`)) return
     setDeletingId(item.id)
     setDeleteError('')
     try {
@@ -66,7 +66,7 @@ export default function JoinedRooms({ userId, onOpen }) {
       : <ul className="mt-5 divide-y divide-gray-100">
         {rooms.map((item) => <li key={item.id} className="flex flex-wrap items-center justify-between gap-3 py-4">
           <div className="min-w-0 flex-1">
-            <h3 className="font-medium">Phòng {item.id.slice(0, 8)}</h3>
+            <h3 className="break-words font-medium">{item.name || `Phòng ${item.id.slice(0, 8)}`}</h3>
             <p className="mt-1 break-all font-mono text-sm text-gray-500">{item.id}</p>
             <p className="mt-1 text-sm text-gray-500">{item.owner_id === userId ? 'Bạn đã tạo' : 'Đã tham gia'} · Tạo ngày {new Date(item.created_at).toLocaleDateString('vi-VN')}</p>
           </div>
@@ -76,4 +76,5 @@ export default function JoinedRooms({ userId, onOpen }) {
       </ul>}
   </section>
 }
+
 
