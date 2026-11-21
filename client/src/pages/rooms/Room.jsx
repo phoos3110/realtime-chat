@@ -22,6 +22,8 @@ export default function Room({ id, user, onBack }) {
   const scrollRef = useRef(null)
   const shouldScroll = useRef(true)
   const sendingRef = useRef(false)
+  const inputRef = useRef(null)
+  const restoreFocus = useRef(false)
   const exitRef = useRef(onBack)
   const syncRef = useRef(null)
   const aliveRef = useRef(true)
@@ -119,6 +121,13 @@ export default function Room({ id, user, onBack }) {
     if (shouldScroll.current && scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight
   }, [messages])
 
+  useEffect(() => {
+    if (restoreFocus.current && !sending && !pending) {
+      inputRef.current?.focus({ preventScroll: true })
+      restoreFocus.current = false
+    }
+  }, [sending, pending])
+
   async function loadOlder() {
     if (!oldest.current || loadingOlder || !online) return
     setLoadingOlder(true)
@@ -143,6 +152,7 @@ export default function Room({ id, user, onBack }) {
     if (sendingRef.current || !navigator.onLine || (!pending && !text.trim())) return
     const message = pending || { id: crypto.randomUUID(), content: text.trim() }
     sendingRef.current = true
+    restoreFocus.current = true
     setSending(true)
     setPending(message)
     setText('')
@@ -189,7 +199,7 @@ export default function Room({ id, user, onBack }) {
     </div>
     {error && <p role="alert" className="max-h-24 shrink-0 overflow-y-auto px-4 pb-2 text-sm text-red-700">{error}</p>}
     <form onSubmit={send} className="flex shrink-0 gap-2 border-t border-gray-200 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-      <input aria-label="Tin nhắn" value={text} onChange={(e) => setText(e.target.value)} disabled={sending || !!pending} maxLength={2000} placeholder={pending ? 'Gửi lại tin đang chờ trước' : 'Nhập tin nhắn…'} className="min-w-0 flex-1 rounded-md border border-gray-300 p-3 disabled:bg-gray-50" />
+      <input ref={inputRef} aria-label="Tin nhắn" value={text} onChange={(e) => setText(e.target.value)} disabled={sending || !!pending} maxLength={2000} placeholder={pending ? 'Gửi lại tin đang chờ trước' : 'Nhập tin nhắn…'} className="min-w-0 flex-1 rounded-md border border-gray-300 p-3 disabled:bg-gray-50" />
       <button disabled={sending || !online || !room || (!pending && !text.trim())} className="min-h-11 shrink-0 rounded-md bg-gray-900 px-4 font-medium text-white disabled:opacity-50">{sending ? 'Đang gửi…' : pending ? 'Gửi lại' : 'Gửi'}</button>
     </form>
     {pending && !sending && <button className="pb-3 text-sm underline" onClick={() => { if (window.confirm('Tin có thể đã được lưu nếu mạng bị ngắt khi trả kết quả. Bỏ trạng thái chờ để soạn tin khác?')) { setPending(null); setError('') } }}>Bỏ trạng thái chờ</button>}
