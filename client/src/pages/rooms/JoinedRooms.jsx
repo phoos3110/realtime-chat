@@ -1,5 +1,6 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '../../supabase'
+import { chatError } from '../../lib/chat'
 
 export default function JoinedRooms({ userId, onOpen }) {
   const [rooms, setRooms] = useState([])
@@ -47,6 +48,18 @@ export default function JoinedRooms({ userId, onOpen }) {
     }
   }
 
+  async function leaveRoom(item) {
+    if (deletingId || !window.confirm(`Rời phòng "${item.name}"? Bạn cần ID phòng để tham gia lại.`)) return
+    setDeletingId(item.id)
+    setDeleteError('')
+    try {
+      const { error } = await supabase.rpc('leave_chat_room', { target: item.id })
+      if (error) throw error
+      setRooms((previous) => previous.filter((room) => room.id !== item.id))
+    } catch (err) { setDeleteError(chatError(err)) }
+    finally { setDeletingId(null) }
+  }
+
   function refresh() {
     setLoading(true)
     setError('')
@@ -70,11 +83,10 @@ export default function JoinedRooms({ userId, onOpen }) {
             <p className="mt-1 break-all font-mono text-sm text-gray-500">{item.id}</p>
             <p className="mt-1 text-sm text-gray-500">{item.owner_id === userId ? 'Bạn đã tạo' : 'Đã tham gia'} · Tạo ngày {new Date(item.created_at).toLocaleDateString('vi-VN')}</p>
           </div>
-          <button disabled={!!deletingId} onClick={() => onOpen(item.id)} aria-label={`Mở phòng ${item.id}`} className="shrink-0 rounded-md border border-gray-300 px-4 py-2 font-medium hover:bg-gray-50">Mở phòng</button>
-          {item.owner_id === userId && <button onClick={() => deleteRoom(item)} disabled={!!deletingId} aria-label={`Xóa phòng ${item.id}`} className="shrink-0 rounded-md border border-red-200 px-4 py-2 font-medium text-red-700 hover:bg-red-50 disabled:opacity-50">{deletingId === item.id ? 'Đang xóa…' : 'Xóa phòng'}</button>}
+          <button disabled={!!deletingId} onClick={() => onOpen(item.id)} aria-label={`Mở phòng ${item.id}`} className="shrink-0 rounded-md border border-gray-300 px-4 py-3 font-medium hover:bg-gray-50">Mở phòng</button>
+          {item.owner_id === userId && <button onClick={() => deleteRoom(item)} disabled={!!deletingId} aria-label={`Xóa phòng ${item.id}`} className="shrink-0 rounded-md border border-red-200 px-4 py-3 font-medium text-red-700 hover:bg-red-50 disabled:opacity-50">{deletingId === item.id ? 'Đang xóa…' : 'Xóa phòng'}</button>}
+          {item.owner_id !== userId && <button onClick={() => leaveRoom(item)} disabled={!!deletingId} className="min-h-11 rounded-md border border-gray-300 px-4 text-sm disabled:opacity-50">{deletingId === item.id ? 'Đang rời…' : 'Rời phòng'}</button>}
         </li>)}
       </ul>}
   </section>
 }
-
-
