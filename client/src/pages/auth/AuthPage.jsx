@@ -1,5 +1,6 @@
 ﻿import { useEffect, useState } from 'react'
 import { supabase } from '../../supabase'
+import RoomsPage from '../rooms/RoomsPage'
 
 export default function AuthPage() {
   const [session, setSession] = useState(null)
@@ -71,17 +72,12 @@ export default function AuthPage() {
     }
   }
 
+  if (!loading && session) return <RoomsPage key={session.user.id} session={session} onLogout={logout} signingOut={busy} logoutError={error} />
+
   return (
     <main className="flex min-h-dvh items-center justify-center bg-gray-50 p-4 text-gray-900">
       <section className="w-full max-w-sm rounded-lg border border-gray-200 bg-white p-6 sm:p-8">
-        {loading ? <p role="status" className="text-slate-500">Đang tải phiên đăng nhập…</p> : session ? (
-          <>
-            <h1 className="text-xl font-semibold">Xin chào, {session.user.user_metadata.display_name || session.user.email}</h1>
-            <p className="mt-2 break-words text-slate-500">{session.user.email}</p>
-            <div className="my-6 rounded-md bg-gray-50 p-5"><h2 className="font-semibold text-gray-900">Chưa có cuộc trò chuyện</h2><p className="mt-2 text-sm leading-relaxed text-slate-600">Tài khoản của bạn đã đăng nhập. Phần lưu và nhận tin nhắn sẽ được kết nối ở bước tiếp theo.</p></div>
-            <button disabled={busy} onClick={logout} className="w-full rounded-md border border-slate-300 p-3 font-semibold hover:bg-slate-50 disabled:opacity-50">{busy ? 'Đang đăng xuất…' : 'Đăng xuất'}</button>
-          </>
-        ) : (
+        {loading ? <p role="status" className="text-slate-500">Đang tải phiên đăng nhập…</p> : (
           <>
             <h1 className="text-xl font-semibold">{registering ? 'Tạo tài khoản' : 'Chào mừng trở lại'}</h1>
             <p className="mt-2 text-slate-500">{registering ? 'Bắt đầu kết nối với mọi người.' : 'Đăng nhập để tiếp tục trò chuyện.'}</p>
