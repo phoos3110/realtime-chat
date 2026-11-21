@@ -26,6 +26,7 @@ alter table public.chat_messages enable row level security;
 revoke all on public.chat_rooms, public.chat_members, public.chat_messages from anon, authenticated;
 grant select on public.chat_rooms, public.chat_members, public.chat_messages to authenticated;
 grant insert (room_id, sender_id, sender_name, content) on public.chat_messages to authenticated;
+grant delete on public.chat_rooms to authenticated;
 
 -- Mã UUID đầy đủ là mã mời; chỉ chia sẻ với người bạn muốn mời.
 create schema if not exists chat_private;
@@ -55,6 +56,9 @@ $$;
 revoke all on function public.open_chat_room(uuid) from public, anon;
 grant execute on function public.open_chat_room(uuid) to authenticated;
 
+drop policy if exists rooms_delete_owner on public.chat_rooms;
+create policy rooms_delete_owner on public.chat_rooms for delete to authenticated using(owner_id = (select auth.uid()));
+
 drop policy if exists members_read_self on public.chat_members;
 create policy members_read_self on public.chat_members for select to authenticated using(user_id = (select auth.uid()));
 drop policy if exists rooms_read_member on public.chat_rooms;
@@ -69,3 +73,4 @@ do $$ begin
   end if;
 end $$;
 commit;
+

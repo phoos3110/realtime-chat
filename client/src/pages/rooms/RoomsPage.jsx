@@ -1,5 +1,6 @@
 ﻿import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../../supabase'
+import JoinedRooms from './JoinedRooms'
 
 const inputStyle = 'mt-2 w-full rounded-md border border-gray-300 p-3 outline-none focus:border-gray-600'
 const buttonStyle = 'rounded-md bg-gray-900 px-5 py-3 font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50'
@@ -44,6 +45,7 @@ export default function RoomsPage({ session, onLogout, signingOut, logoutError }
           <section className="flex flex-col rounded-lg border border-gray-200 bg-white p-6"><h2 className="text-lg font-semibold">Tạo phòng mới</h2><p className="mt-2 mb-6 flex-1 text-gray-500">Tạo phòng và gửi ID cho người bạn muốn trò chuyện.</p><button disabled={busy} onClick={(e) => openRoom(e, true)} className={buttonStyle}>{busy ? 'Đang xử lý…' : 'Tạo phòng'}</button></section>
           <section className="rounded-lg border border-gray-200 bg-white p-6"><h2 className="text-lg font-semibold">Tham gia phòng</h2><form onSubmit={openRoom} className="mt-4"><label className="block text-sm font-medium">ID phòng<input required value={invite} onChange={(e) => setInvite(e.target.value)} placeholder="Dán ID phòng vào đây" autoComplete="off" spellCheck={false} className={inputStyle} /></label><button disabled={busy || !invite.trim()} className={`${buttonStyle} mt-4 w-full`}>{busy ? 'Đang xử lý…' : 'Vào phòng'}</button></form></section>
         </div>
+        <JoinedRooms userId={session.user.id} onOpen={(id) => { setRoom(id); setError('') }} />
         <p className="mt-5 text-sm text-gray-500">Ai có ID và đã đăng nhập đều có thể tham gia. Chỉ chia sẻ ID với người bạn muốn mời.</p>
         {error && <p role="alert" className="mt-4 rounded-md bg-red-50 p-3 text-sm text-red-700">{error}</p>}
       </>}
